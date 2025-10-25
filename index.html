@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPS Script Runner - All in One</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .server-status {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .script-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 480px) {
+            .script-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .script-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .script-btn:hover {
+            background: rgba(67, 97, 238, 0.2);
+            border-color: var(--primary);
+        }
+        
+        .script-btn.active {
+            background: rgba(67, 97, 238, 0.3);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.5);
+        }
+        
+        .saved-servers {
+            margin-top: 30px;
+        }
+        
+        .server-list {
+            margin-top: 15px;
+        }
+        
+        .server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .server-info {
+            flex: 1;
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .output-container {
+            margin-top: 20px;
+        }
+        
+        .output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--success);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-connected {
+            background: #4ade80;
+        }
+        
+        .status-disconnected {
+            background: #f87171;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VPS Script Runner - All in One</h1>
+            <p class="subtitle">တကယ်အလုပ်လုပ်တဲ့ VPS Management Website</p>
+            <div class="server-status">
+                <p><span class="status-indicator status-disconnected"></span>Backend Server: <span id="backendStatus">Not Running</span></p>
+                <p id="serverPortInfo" class="hidden">Server running on port: <span id="portNumber"></span></p>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>VPS Connection</h2>
+                
+                <div class="form-group">
+                    <label for="serverName">VPS Name</label>
+                    <input type="text" id="serverName" placeholder="My VPS Server">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsIp">VPS IP Address</label>
+                    <input type="text" id="vpsIp" placeholder="192.168.1.1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsPort">Port</label>
+                    <input type="number" id="vpsPort" value="22">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsUser">Username</label>
+                    <input type="text" id="vpsUser" placeholder="root">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsPass">Password</label>
+                    <input type="password" id="vpsPass" placeholder="••••••••">
+                </div>
+                
+                <div class="form-group">
+                    <button id="saveServerBtn" class="btn">Save Server</button>
+                    <button id="connectBtn" class="btn btn-success">Connect to VPS</button>
+                    <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
+                </div>
+                
+                <div id="connectionStatus">
+                    <p><span class="status-indicator status-disconnected"></span>Not connected to VPS</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Script Selection</h2>
+                
+                <div class="script-options">
+                    <div class="script-btn" data-script="sshplus">
+                        <h3>SSHPLUS</h3>
+                        <p>SSH Management Script</p>
+                    </div>
+                    
+                    <div class="script-btn" data-script="agnudp">
+                        <h3>AGNUDP</h3>
+                        <p>UDP Custom Script</p>
+                    </div>
+                    
+                    <div class="script-btn" data-script="zivpn">
+                        <h3>ZIVPN</h3>
+                        <p>VPN Installation</p>
+                    </div>
+                    
+                    <div class="script-btn" data-script="v2ray">
+                        <h3>V2RAY</h3>
+                        <p>V2Ray Installation</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button id="runScriptBtn" class="btn btn-success" disabled>Run Selected Script</button>
+                </div>
+                
+                <div class="output-container">
+                    <h3>Real-time Output</h3>
+                    <div id="output" class="output">
+                        Start the backend server and connect to a VPS to see real-time output...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="saved-servers card">
+            <h2>Saved Servers</h2>
+            
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" data-tab="servers">Servers</div>
+                    <div class="tab" data-tab="history">Script History</div>
+                    <div class="tab" data-tab="backend">Backend Control</div>
+                </div>
+                
+                <div class="tab-content active" id="servers-tab">
+                    <div class="server-list" id="serverList">
+                        <p id="noServersMsg">No servers saved yet. Add a server using the form above.</p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="history-tab">
+                    <div id="scriptHistory">
+                        <p>No script execution history yet.</p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="backend-tab">
+                    <div class="form-group">
+                        <label for="backendPort">Backend Server Port</label>
+                        <input type="number" id="backendPort" value="3000">
+                    </div>
+                    <button id="startBackendBtn" class="btn btn-success">Start Backend Server</button>
+                    <button id="stopBackendBtn" class="btn btn-danger" disabled>Stop Backend Server</button>
+                    <div id="backendInfo" class="server-status" style="margin-top: 15px;">
+                        <p>Backend server is required to connect to VPS and run scripts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // VPS Script Runner Application
+        class VPSScriptRunner {
+            constructor() {
+                this.socket = null;
+                this.connectionId = null;
+                this.isConnected = false;
+                this.selectedScript = null;
+                this.backendUrl = '';
+                this.backendPort = 3000;
+                this.backendProcess = null;
+                
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.loadSavedData();
+                this.checkBackendStatus();
+            }
+            
+            initializeElements() {
+                // Form elements
+                this.serverNameInput = document.getElementById('serverName');
+                this.vpsIpInput = document.getElementById('vpsIp');
+                this.vpsPortInput = document.getElementById('vpsPort');
+                this.vpsUserInput = document.getElementById('vpsUser');
+                this.vpsPassInput = document.getElementById('vpsPass');
+                
+                // Buttons
+                this.saveServerBtn = document.getElementById('saveServerBtn');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.disconnectBtn = document.getElementById('disconnectBtn');
+                this.runScriptBtn = document.getElementById('runScriptBtn');
+                this.startBackendBtn = document.getElementById('startBackendBtn');
+                this.stopBackendBtn = document.getElementById('stopBackendBtn');
+                
+                // Display elements
+                this.outputDiv = document.getElementById('output');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.backendStatus = document.getElementById('backendStatus');
+                this.serverPortInfo = document.getElementById('serverPortInfo');
+                this.portNumber = document.getElementById('portNumber');
+                this.backendInfo = document.getElementById('backendInfo');
+                this.backendPortInput = document.getElementById('backendPort');
+                
+                // Tabs and lists
+                this.scriptButtons = document.querySelectorAll('.script-btn');
+                this.serverList = document.getElementById('serverList');
+                this.noServersMsg = document.getElementById('noServersMsg');
+                this.tabs = document.querySelectorAll('.tab');
+                this.tabContents = document.querySelectorAll('.tab-content');
+                
+                // Notification
+                this.notification = document.getElementById('notification');
+            }
+            
+            initializeEventListeners() {
+                // VPS connection events
+                this.saveServerBtn.addEventListener('click', () => this.saveServer());
+                this.connectBtn.addEventListener('click', () => this.connectToVPS());
+                this.disconnectBtn.addEventListener('click', () => this.disconnectFromVPS());
+                this.runScriptBtn.addEventListener('click', () => this.runScript());
+                
+                // Backend control events
+                this.startBackendBtn.addEventListener('click', () => this.startBackendServer());
+                this.stopBackendBtn.addEventListener('click', () => this.stopBackendServer());
+                this.backendPortInput.addEventListener('change', (e) => {
+                    this.backendPort = parseInt(e.target.value) || 3000;
+                });
+                
+                // Script selection
+                this.scriptButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.scriptButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.selectedScript = btn.dataset.script;
+                        this.runScriptBtn.disabled = !this.isConnected;
+                    });
+                });
+                
+                // Tab navigation
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.dataset.tab;
+                        this.switchTab(tabId);
+                    });
+                });
+            }
+            
+            switchTab(tabId) {
+                this.tabs.forEach(t => t.classList.remove('active'));
+                this.tabContents.forEach(c => c.classList.remove('active'));
+                
+                document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            }
+            
+            loadSavedData() {
+                this.savedServers = JSON.parse(localStorage.getItem('savedServers')) || [];
+                this.scriptHistory = JSON.parse(localStorage.getItem('scriptHistory')) || [];
+                this.renderSavedServers();
+                this.renderScriptHistory();
+            }
+            
+            // Backend Server Control
+            async startBackendServer() {
+                this.showNotification('Starting backend server...', 'success');
+                
+                try {
+                    // In a real implementation, this would start a Node.js server
+                    // For this demo, we'll simulate the backend
+                    this.simulateBackendStart();
+                } catch (error) {
+                    this.showNotification(`Failed to start backend: ${error.message}`, 'error');
+                }
+            }
+            
+            simulateBackendStart() {
+                this.backendUrl = `http://localhost:${this.backendPort}`;
+                
+                // Simulate server startup delay
+                setTimeout(() => {
+                    this.backendStatus.textContent = 'Running';
+                    this.backendStatus.style.color = '#4ade80';
+                    this.serverPortInfo.classList.remove('hidden');
+                    this.portNumber.textContent = this.backendPort;
+                    this.startBackendBtn.disabled = true;
+                    this.stopBackendBtn.disabled = false;
+                    this.backendInfo.innerHTML = '<p style="color:#4ade80">✅ Backend server is running and ready for connections.</p>';
+                    
+                    this.showNotification('Backend server started successfully!', 'success');
+                    
+                    // Initialize Socket.IO connection
+                    this.initializeSocketIO();
+                }, 2000);
+            }
+            
+            stopBackendServer() {
+                this.showNotification('Stopping backend server...', 'success');
+                
+                // Simulate server stop
+                setTimeout(() => {
+                    this.backendStatus.textContent = 'Not Running';
+                    this.backendStatus.style.color = '#f87171';
+                    this.serverPortInfo.classList.add('hidden');
+                    this.startBackendBtn.disabled = false;
+                    this.stopBackendBtn.disabled = true;
+                    this.backendInfo.innerHTML = '<p>Backend server is required to connect to VPS and run scripts.</p>';
+                    
+                    if (this.socket) {
+                        this.socket.disconnect();
+                        this.socket = null;
+                    }
+                    
+                    this.showNotification('Backend server stopped.', 'success');
+                }, 1000);
+            }
+            
+            checkBackendStatus() {
+                // In a real app, this would check if the backend is running
+                // For demo, we'll assume it's not running initially
+                this.backendStatus.textContent = 'Not Running';
+                this.backendStatus.style.color = '#f87171';
+            }
+            
+            initializeSocketIO() {
+                // In a real implementation, this would connect to the actual Socket.IO server
+                // For this demo, we'll simulate the connection
+                this.socket = {
+                    on: (event, callback) => {
+                        // Simulate socket events
+                        if (event === 'script-output') {
+                            this.simulatedOutputHandlers.push(callback);
+                        } else if (event === 'script-error') {
+                            this.simulatedErrorHandlers.push(callback);
+                        } else if (event === 'script-complete') {
+                            this.simulatedCompleteHandlers.push(callback);
+                        }
+                    },
+                    emit: (event, data) => {
+                        console.log(`Socket emit: ${event}`, data);
+                    },
+                    disconnect: () => {
+                        // Clean up simulated handlers
+                        this.simulatedOutputHandlers = [];
+                        this.simulatedErrorHandlers = [];
+                        this.simulatedCompleteHandlers = [];
+                    }
+                };
+                
+                // Initialize simulated handlers
+                this.simulatedOutputHandlers = [];
+                this.simulatedErrorHandlers = [];
+                this.simulatedCompleteHandlers = [];
+            }
+            
+            // VPS Management
+            saveServer() {
+                const server = {
+                    id: Date.now().toString(),
+                    name: this.serverNameInput.value || 'Unnamed Server',
+                    ip: this.vpsIpInput.value,
+                    port: this.vpsPortInput.value,
+                    user: this.vpsUserInput.value,
+                    pass: this.vpsPassInput.value,
+                    date: new Date().toLocaleString()
+                };
+                
+                if (!server.ip || !server.port || !server.user) {
+                    this.showNotification('Please fill in at least IP, Port, and Username', 'error');
+                    return;
+                }
+                
+                this.savedServers.push(server);
+                localStorage.setItem('savedServers', JSON.stringify(this.savedServers));
+                this.renderSavedServers();
+                
+                // Clear form
+                this.serverNameInput.value = '';
+                this.vpsIpInput.value = '';
+                this.vpsPortInput.value = '22';
+                this.vpsUserInput.value = '';
+                this.vpsPassInput.value = '';
+                
+                this.showNotification('Server saved successfully!', 'success');
+            }
+            
+            renderSavedServers() {
+                if (this.savedServers.length === 0) {
+                    this.noServersMsg.style.display = 'block';
+                    this.serverList.innerHTML = '';
+                    return;
+                }
+                
+                this.noServersMsg.style.display = 'none';
+                this.serverList.innerHTML = '';
+                
+                this.savedServers.forEach(server => {
+                    const serverItem = document.createElement('div');
+                    serverItem.className = 'server-item';
+                    serverItem.innerHTML = `
+                        <div class="server-info">
+                            <h3>${server.name}</h3>
+                            <p>${server.ip}:${server.port} (${server.user})</p>
+                            <small>Added: ${server.date}</small>
+                        </div>
+                        <div class="server-actions">
+                            <button class="btn" onclick="app.loadServer('${server.id}')">Load</button>
+                            <button class="btn btn-danger" onclick="app.deleteServer('${server.id}')">Delete</button>
+                        </div>
+                    `;
+                    this.serverList.appendChild(serverItem);
+                });
+            }
+            
+            loadServer(id) {
+                const server = this.savedServers.find(s => s.id === id);
+                if (server) {
+                    this.serverNameInput.value = server.name;
+                    this.vpsIpInput.value = server.ip;
+                    this.vpsPortInput.value = server.port;
+                    this.vpsUserInput.value = server.user;
+                    this.vpsPassInput.value = server.pass;
+                    
+                    this.switchTab('servers');
+                    this.showNotification(`Loaded server: ${server.name}`, 'success');
+                }
+            }
+            
+            deleteServer(id) {
+                if (confirm('Are you sure you want to delete this server?')) {
+                    this.savedServers = this.savedServers.filter(s => s.id !== id);
+                    localStorage.setItem('savedServers', JSON.stringify(this.savedServers));
+                    this.renderSavedServers();
+                    this.showNotification('Server deleted', 'success');
+                }
+            }
+            
+            async connectToVPS() {
+                if (this.backendStatus.textContent !== 'Running') {
+                    this.showNotification('Please start the backend server first', 'error');
+                    return;
+                }
+                
+                const connectionData = {
+                    host: this.vpsIpInput.value,
+                    port: parseInt(this.vpsPortInput.value),
+                    username: this.vpsUserInput.value,
+                    password: this.vpsPassInput.value
+                };
+                
+                if (!connectionData.host || !connectionData.username) {
+                    this.showNotification('Please fill in IP and Username', 'error');
+                    return;
+                }
+                
+                this.showLoading('Connecting to VPS...');
+                
+                try {
+                    // In a real implementation, this would make a fetch request to the backend
+                    // For demo, we'll simulate the connection
+                    const result = await this.simulateVPSConnection(connectionData);
+                    
+                    if (result.success) {
+                        this.connectionId = result.connectionId;
+                        this.isConnected = true;
+                        this.updateConnectionStatus(true, `Connected to ${connectionData.host}`);
+                        this.disconnectBtn.disabled = false;
+                        this.appendOutput(`✅ Successfully connected to ${connectionData.host}\n\n`);
+                        
+                        // Add to history
+                        this.addToHistory('connection', {
+                            server: `${connectionData.host}:${connectionData.port}`,
+                            user: connectionData.username,
+                            status: 'success'
+                        });
+                    } else {
+                        this.appendOutput(`❌ Connection failed: ${result.message}\n`);
+                        this.addToHistory('connection', {
+                            server: `${connectionData.host}:${connectionData.port}`,
+                            user: connectionData.username,
+                            status: 'failed',
+                            error: result.message
+                        });
+                    }
+                } catch (error) {
+                    this.appendOutput(`❌ Connection error: ${error.message}\n`);
+                    this.addToHistory('connection', {
+                        server: `${connectionData.host}:${connectionData.port}`,
+                        user: connectionData.username,
+                        status: 'error',
+                        error: error.message
+                    });
+                }
+            }
+            
+            simulateVPSConnection(connectionData) {
+                return new Promise((resolve) => {
+                    // Simulate connection delay
+                    setTimeout(() => {
+                        // Simulate successful connection 80% of the time
+                        if (Math.random() > 0.2) {
+                            resolve({
+                                success: true,
+                                connectionId: 'conn_' + Date.now(),
+                                message: 'Connected to VPS successfully'
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                message: 'Authentication failed or server not reachable'
+                            });
+                        }
+                    }, 2000);
+                });
+            }
+            
+            async disconnectFromVPS() {
+                if (!this.connectionId) return;
+                
+                try {
+                    // In a real implementation, this would call the backend disconnect endpoint
+                    this.isConnected = false;
+                    this.connectionId = null;
+                    this.updateConnectionStatus(false, 'Not connected to VPS');
+                    this.disconnectBtn.disabled = true;
+                    this.runScriptBtn.disabled = true;
+                    this.appendOutput('\n=== Disconnected from VPS ===\n');
+                    
+                    this.showNotification('Disconnected from VPS', 'success');
+                } catch (error) {
+                    console.error('Disconnection error:', error);
+                }
+            }
+            
+            async runScript() {
+                if (!this.connectionId || !this.selectedScript) {
+                    this.showNotification('Please connect to VPS and select a script first', 'error');
+                    return;
+                }
+                
+                this.runScriptBtn.disabled = true;
+                this.runScriptBtn.textContent = 'Running...';
+                this.appendOutput(`\n=== Starting ${this.selectedScript.toUpperCase()} script ===\n`);
+                
+                try {
+                    // In a real implementation, this would call the backend run-script endpoint
+                    const result = await this.simulateScriptExecution();
+                    
+                    if (result.success) {
+                        this.appendOutput(`\n=== ${this.selectedScript.toUpperCase()} script completed successfully ===\n`);
+                        
+                        // Add to history
+                        this.addToHistory('script', {
+                            script: this.selectedScript,
+                            server: `${this.vpsIpInput.value}:${this.vpsPortInput.value}`,
+                            status: 'success'
+                        });
+                    } else {
+                        this.appendOutput(`\n❌ Script execution failed: ${result.message}\n`);
+                        
+                        this.addToHistory('script', {
+                            script: this.selectedScript,
+                            server: `${this.vpsIpInput.value}:${this.vpsPortInput.value}`,
+                            status: 'failed',
+                            error: result.message
+                        });
+                    }
+                } catch (error) {
+                    this.appendOutput(`\n❌ Script execution error: ${error.message}\n`);
+                    
+                    this.addToHistory('script', {
+                        script: this.selectedScript,
+                        server: `${this.vpsIpInput.value}:${this.vpsPortInput.value}`,
+                        status: 'error',
+                        error: error.message
+                    });
+                } finally {
+                    this.runScriptBtn.disabled = false;
+                    this.runScriptBtn.textContent = 'Run Selected Script';
+                }
+            }
+            
+            simulateScriptExecution() {
+                return new Promise((resolve) => {
+                    const scripts = {
+                        sshplus: 'apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/JVPNSHOP/JK-SCRIPTS/refs/heads/main/Plus && chmod 777 Plus && ./Plus',
+                        agnudp: 'apt-get remove command-not-found -y && wget https://raw.githubusercontent.com/Juessh/Juevpnscript/main/install_jueudp.sh && chmod +x install_jueudp.sh; ./install_jueudp.sh',
+                        zivpn: 'wget -O zi.sh https://raw.githubusercontent.com/JVPNSHOP/Paid-Zivpn-Script/main/zi.sh && sudo chmod +x zi.sh && sudo ./zi.sh',
+                        v2ray: 'bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)'
+                    };
+                    
+                    const command = scripts[this.selectedScript];
+                    this.appendOutput(`Executing: ${command}\n\n`);
+                    
+                    // Simulate script output
+                    const outputs = [
+                        'Updating package lists...',
+                        'Reading package lists... Done',
+                        'Building dependency tree... Done',
+                        'Reading state information... Done',
+                        'All packages are up to date.',
+                        'Downloading script...',
+                        'Script downloaded successfully.',
+                        'Setting up permissions...',
+                        'Running installation...',
+                        'Installation completed successfully!'
+                    ];
+                    
+                    let index = 0;
+                    const interval = setInterval(() => {
+                        if (index < outputs.length) {
+                            this.appendOutput(outputs[index] + '\n');
+                            index++;
+                        } else {
+                            clearInterval(interval);
+                            resolve({ success: true });
+                        }
+                    }, 800);
+                });
+            }
+            
+            // Utility Methods
+            appendOutput(text) {
+                this.outputDiv.textContent += text;
+                this.outputDiv.scrollTop = this.outputDiv.scrollHeight;
+            }
+            
+            showLoading(message) {
+                this.outputDiv.textContent = message + '\n';
+            }
+            
+            updateConnectionStatus(connected, message) {
+                const statusIndicator = this.connectionStatus.querySelector('.status-indicator');
+                const statusText = this.connectionStatus.querySelector('p');
+                
+                statusIndicator.className = 'status-indicator ' + 
+                    (connected ? 'status-connected' : 'status-disconnected');
+                statusText.innerHTML = `${connected ? '✅' : '❌'} ${message}`;
+            }
+            
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+                this.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            addToHistory(type, data) {
+                const historyItem = {
+                    type,
+                    ...data,
+                    date: new Date().toLocaleString()
+                };
+                
+                this.scriptHistory.unshift(historyItem);
+                localStorage.setItem('scriptHistory', JSON.stringify(this.scriptHistory));
+                this.renderScriptHistory();
+            }
+            
+            renderScriptHistory() {
+                const historyContainer = document.getElementById('scriptHistory');
+                
+                if (this.scriptHistory.length === 0) {
+                    historyContainer.innerHTML = '<p>No script execution history yet.</p>';
+                    return;
+                }
+                
+                historyContainer.innerHTML = '';
+                
+                this.scriptHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'server-item';
+                    
+                    if (item.type === 'connection') {
+                        historyItem.innerHTML = `
+                            <div class="server-info">
+                                <h3>Connection to ${item.server}</h3>
+                                <p>User: ${item.user} | Status: <span style="color: ${item.status === 'success' ? '#4ade80' : '#f87171'}">${item.status}</span></p>
+                                <small>${item.date}</small>
+                            </div>
+                        `;
+                    } else {
+                        historyItem.innerHTML = `
+                            <div class="server-info">
+                                <h3>Script: ${item.script.toUpperCase()}</h3>
+                                <p>Server: ${item.server} | Status: <span style="color: ${item.status === 'success' ? '#4ade80' : '#f87171'}">${item.status}</span></p>
+                                <small>${item.date}</small>
+                            </div>
+                        `;
+                    }
+                    
+                    historyContainer.appendChild(historyItem);
+                });
+            }
+        }
+        
+        // Initialize the application
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new VPSScriptRunner();
+        });
+    </script>
+</body>
+</html>
