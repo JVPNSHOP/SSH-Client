@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPS Script Runner - All Scripts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css" />
+    <style>
+        :root {
+            --primary: #00d4aa;
+            --secondary: #00997a;
+            --success: #00d4aa;
+            --danger: #ff6b6b;
+            --warning: #ffd93d;
+            --dark: #1a1b26;
+            --darker: #16161e;
+            --terminal-bg: #1a1b26;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--darker);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background: var(--dark);
+            border-right: 1px solid #2a2b3a;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            background: var(--darker);
+        }
+        
+        header {
+            padding: 15px 20px;
+            background: var(--dark);
+            border-bottom: 1px solid #2a2b3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #a9b1d6;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #2a2b3a;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            background: var(--primary);
+            color: #1a1b26;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: #1a1b26;
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .server-list {
+            margin-top: 10px.
+        }
+        
+        .server-item {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .server-item:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .server-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .server-details {
+            font-size: 0.8rem;
+            color: #a9b1d6;
+        }
+        
+        .tab-bar {
+            display: flex;
+            background: var(--dark);
+            border-bottom: 1px solid #2a2b3a;
+            padding: 0 10px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #a9b1d6;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .terminal-container {
+            flex: 1;
+            padding: 20px;
+            background: var(--terminal-bg);
+        }
+        
+        #terminal {
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .script-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .script-btn {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .script-btn:hover {
+            background: rgba(0, 212, 170, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .script-btn.active {
+            background: rgba(0, 212, 170, 0.3);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 212, 170, 0.3);
+        }
+        
+        .script-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        
+        .script-desc {
+            font-size: 0.8rem;
+            color: #a9b1d6;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 20px;
+            background: var(--dark);
+            border-top: 1px solid #2a2b3a;
+            font-size: 0.8rem;
+            color: #a9b1d6;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+        
+        .status-connected {
+            background: var(--success);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: var(--success);
+            color: #1a1b26;
+            border-radius: 6px;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 212, 170, 0.2);
+            border-color: var(--primary);
+        }
+
+        .backend-status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--success);
+        }
+
+        .backend-status.offline {
+            border-left-color: var(--danger);
+        }
+
+        .run-script-btn {
+            margin-top: 15px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .script-preview {
+            display: none; /* Hide script preview for security */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo" style="margin-bottom: 20px;">
+                <div class="logo-icon">VPS</div>
+                <h1>Script Runner</h1>
+            </div>
+
+            <div class="backend-status" id="backendStatus">
+                🔗 Backend: Connecting to script.jvpnapp.site...
+            </div>
+            
+            <div class="card">
+                <h2>VPS Connection</h2>
+                
+                <div class="form-group">
+                    <label for="serverName">VPS Name</label>
+                    <input type="text" id="serverName" placeholder="My VPS Server">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsIp">VPS IP Address</label>
+                    <input type="text" id="vpsIp" placeholder="192.168.1.1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsPort">Port</label>
+                    <input type="number" id="vpsPort" value="22">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsUser">Username</label>
+                    <input type="text" id="vpsUser" placeholder="root">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vpsPass">Password</label>
+                    <input type="password" id="vpsPass" placeholder="••••••••">
+                </div>
+                
+                <button id="saveServerBtn" class="btn btn-full">Save Server</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="connectBtn" class="btn btn-success" style="flex: 1;">Connect</button>
+                    <button id="disconnectBtn" class="btn btn-danger" style="flex: 1;" disabled>Disconnect</button>
+                </div>
+                
+                <div class="connection-status" style="margin-top: 15px;">
+                    <div class="status-indicator"></div>
+                    <span id="connectionStatusText">Not connected</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions">
+                    <button class="action-btn" id="sudoSuBtn">sudo su</button>
+                    <button class="action-btn" id="clearBtn">Clear</button>
+                    <button class="action-btn" id="updateBtn">apt update</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Scripts</h2>
+                <div class="script-buttons">
+                    <div class="script-btn" data-script="sshplus">
+                        <div class="script-name">SSHPLUS</div>
+                        <div class="script-desc">SSH Management Script</div>
+                    </div>
+                    
+                    <div class="script-btn" data-script="agnudp">
+                        <div class="script-name">AGNUDP</div>
+                        <div class="script-desc">UDP Custom Script</div>
+                    </div>
+                    
+                    <div class="script-btn" data-script="zivpn">
+                        <div class="script-name">ZIVPN</div>
+                        <div class="script-desc">VPN Installation</div>
+                    </div>
+                    
+                    <div class="script-btn" data-script="v2ray">
+                        <div class="script-name">V2RAY</div>
+                        <div class="script-desc">V2Ray Installation</div>
+                    </div>
+                </div>
+
+                <button id="runScriptBtn" class="btn btn-success btn-full run-script-btn" disabled>
+                    🚀 Run Selected Script
+                </button>
+            </div>
+            
+            <div class="card">
+                <h2>Saved Servers</h2>
+                <div class="server-list" id="serverList">
+                    <p style="text-align: center; color: #a9b1d6; font-size: 0.9rem;">No servers saved</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div>
+                    <span id="currentServer">No server connected</span>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-warning" id="newTabBtn">+ New Tab</button>
+                </div>
+            </header>
+            
+            <div class="tab-bar">
+                <button class="tab active">Terminal</button>
+                <button class="tab">Script Output</button>
+                <button class="tab">Settings</button>
+            </div>
+            
+            <div class="terminal-container">
+                <div id="terminal"></div>
+            </div>
+            
+            <div class="status-bar">
+                <div class="connection-status">
+                    <div class="status-indicator"></div>
+                    <span id="sshStatus">SSH: Not connected</span>
+                </div>
+                <div>
+                    <span id="terminalStatus">Ready - Select a script and click Run</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/addons/fit/fit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        class VPSScriptRunner {
+            constructor() {
+                this.term = null;
+                this.socket = null;
+                this.isConnected = false;
+                this.connectionId = null;
+                this.currentServer = null;
+                this.savedServers = JSON.parse(localStorage.getItem('savedServers')) || [];
+                this.commandHistory = [];
+                this.historyIndex = -1;
+                this.currentLine = '';
+                this.backendUrl = 'https://script.jvpnapp.site';
+                this.selectedScript = null;
+                
+                // Define scripts securely (not visible in UI)
+                this.scripts = {
+                    sshplus: {
+                        name: "SSHPLUS",
+                        description: "SSH Management Script",
+                        command: "apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/JVPNSHOP/JK-SCRIPTS/refs/heads/main/Plus && chmod 777 Plus && ./Plus"
+                    },
+                    agnudp: {
+                        name: "AGNUDP",
+                        description: "UDP Custom Script",
+                        command: "apt-get remove command-not-found -y && wget https://raw.githubusercontent.com/Juessh/Juevpnscript/main/install_jueudp.sh && chmod +x install_jueudp.sh; ./install_jueudp.sh"
+                    },
+                    zivpn: {
+                        name: "ZIVPN",
+                        description: "VPN Installation",
+                        command: "wget -O zi.sh https://raw.githubusercontent.com/JVPNSHOP/Paid-Zivpn-Script/main/zi.sh && sudo chmod +x zi.sh && sudo ./zi.sh"
+                    },
+                    v2ray: {
+                        name: "V2RAY",
+                        description: "V2Ray Installation",
+                        command: "bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)"
+                    }
+                };
+                
+                this.initializeTerminal();
+                this.initializeSocket();
+                this.initializeEventListeners();
+                this.loadSavedServers();
+                this.checkBackendStatus();
+            }
+            
+            initializeTerminal() {
+                this.term = new Terminal({
+                    theme: {
+                        background: '#1a1b26',
+                        foreground: '#c0caf5',
+                        cursor: '#c0caf5',
+                        selection: '#33467c',
+                        black: '#15161e',
+                        red: '#f7768e',
+                        green: '#9ece6a',
+                        yellow: '#e0af68',
+                        blue: '#7aa2f7',
+                        magenta: '#bb9af7',
+                        cyan: '#7dcfff',
+                        white: '#a9b1d6'
+                    },
+                    fontSize: 14,
+                    fontFamily: 'Consolas, "Courier New", monospace',
+                    cursorBlink: true
+                });
+                
+                this.term.open(document.getElementById('terminal'));
+                
+                // Fit terminal to container
+                setTimeout(() => {
+                    if (this.term.fit) {
+                        this.term.fit();
+                    }
+                }, 100);
+                
+                // Add welcome message
+                this.writeToTerminal('🚀 VPS Script Runner - All Scripts Integrated\r\n');
+                this.writeToTerminal('📡 Backend: 103.117.149.120:3000\r\n');
+                this.writeToTerminal('💡 Connect to VPS and select any script to run\r\n\r\n');
+                this.writeToTerminal('Available Scripts:\r\n');
+                this.writeToTerminal('• SSHPLUS - SSH Management\r\n');
+                this.writeToTerminal('• AGNUDP - UDP Custom\r\n');
+                this.writeToTerminal('• ZIVPN - VPN Installation\r\n');
+                this.writeToTerminal('• V2RAY - V2Ray Panel\r\n\r\n');
+                this.writePrompt();
+                
+                // Handle terminal input
+                this.term.onData(data => {
+                    this.handleTerminalInput(data);
+                });
+                
+                // Handle terminal resize
+                window.addEventListener('resize', () => {
+                    if (this.term.fit) {
+                        this.term.fit();
+                    }
+                });
+            }
+            
+            initializeSocket() {
+                try {
+                    this.socket = io(this.backendUrl, {
+                        timeout: 5000,
+                        reconnectionAttempts: 3
+                    });
+                    
+                    this.socket.on('connect', () => {
+                        this.updateBackendStatus('✅ Backend: Connected', true);
+                        this.showNotification('Connected to backend server', 'success');
+                    });
+                    
+                    this.socket.on('disconnect', () => {
+                        this.updateBackendStatus('❌ Backend: Disconnected', false);
+                        this.showNotification('Disconnected from backend', 'error');
+                    });
+                    
+                    this.socket.on('connect_error', (error) => {
+                        this.updateBackendStatus('❌ Backend: Connection Failed', false);
+                        this.showNotification('Backend connection failed: ' + error.message', 'error');
+                    });
+                    
+                    this.socket.on('command-output', (data) => {
+                        this.writeToTerminal(data.data);
+                    });
+                    
+                    this.socket.on('command-complete', (data) => {
+                        this.writePrompt();
+                    });
+                    
+                    this.socket.on('script-output', (data) => {
+                        this.writeToTerminal(data.data);
+                    });
+                    
+                    this.socket.on('script-complete', (data) => {
+                        this.writeToTerminal(`\r\n🎉 Script execution completed with exit code: ${data.code}\r\n`);
+                        this.writePrompt();
+                        this.showNotification('Script execution completed!', 'success');
+                    });
+                    
+                    this.socket.on('script-error', (data) => {
+                        this.writeToTerminal(`\r\n❌ Script error: ${data.error}\r\n`);
+                        this.writePrompt();
+                        this.showNotification('Script execution failed!', 'error');
+                    });
+                    
+                    this.socket.on('script-start', (data) => {
+                        this.writeToTerminal(`\r\n🚀 Starting ${data.script.toUpperCase()} script...\r\n`);
+                        this.writeToTerminal(`📝 Command: ${data.command}\r\n\r\n`);
+                    });
+                    
+                } catch (error) {
+                    console.error('Socket initialization error:', error);
+                    this.updateBackendStatus('❌ Backend: Initialization Failed', false);
+                }
+            }
+            
+            initializeEventListeners() {
+                // Server management
+                document.getElementById('saveServerBtn').addEventListener('click', () => this.saveServer());
+                document.getElementById('connectBtn').addEventListener('click', () => this.connectToVPS());
+                document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnectFromVPS());
+                
+                // Quick actions
+                document.getElementById('sudoSuBtn').addEventListener('click', () => this.sendCommand('sudo su'));
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearTerminal());
+                document.getElementById('updateBtn').addEventListener('click', () => this.sendCommand('apt update'));
+                
+                // Script selection
+                document.querySelectorAll('.script-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Remove active class from all buttons
+                        document.querySelectorAll('.script-btn').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        
+                        // Add active class to clicked button
+                        btn.classList.add('active');
+                        
+                        // Set selected script
+                        this.selectedScript = btn.dataset.script;
+                        
+                        // Enable run button
+                        document.getElementById('runScriptBtn').disabled = !this.isConnected;
+                        
+                        this.showNotification(`Selected: ${this.selectedScript.toUpperCase()}`, 'success');
+                    });
+                });
+                
+                // Run script button
+                document.getElementById('runScriptBtn').addEventListener('click', () => {
+                    if (this.selectedScript) {
+                        this.runScript(this.selectedScript);
+                    } else {
+                        this.showNotification('Please select a script first', 'error');
+                    }
+                });
+            }
+            
+            handleTerminalInput(data) {
+                const code = data.charCodeAt(0);
+                
+                // Handle special keys
+                if (code === 13) { // Enter key
+                    this.processCommand(this.currentLine);
+                    this.currentLine = '';
+                } else if (code === 127) { // Backspace key
+                    if (this.currentLine.length > 0) {
+                        this.currentLine = this.currentLine.slice(0, -1);
+                        this.term.write('\b \b');
+                    }
+                } else if (code === 27) { // Escape sequences (arrows, etc.)
+                    // Handle arrow keys for command history
+                    if (data === '\u001b[A') { // Up arrow
+                        if (this.historyIndex < this.commandHistory.length - 1) {
+                            this.historyIndex++;
+                            this.currentLine = this.commandHistory[this.historyIndex];
+                            this.term.write('\r\x1b[K'); // Clear line
+                            this.writePrompt();
+                            this.term.write(this.currentLine);
+                        }
+                    } else if (data === '\u001b[B') { // Down arrow
+                        if (this.historyIndex > 0) {
+                            this.historyIndex--;
+                            this.currentLine = this.commandHistory[this.historyIndex];
+                            this.term.write('\r\x1b[K'); // Clear line
+                            this.writePrompt();
+                            this.term.write(this.currentLine);
+                        } else if (this.historyIndex === 0) {
+                            this.historyIndex = -1;
+                            this.currentLine = '';
+                            this.term.write('\r\x1b[K'); // Clear line
+                            this.writePrompt();
+                        }
+                    }
+                } else if (code >= 32 && code <= 126) { // Printable characters
+                    this.currentLine += data;
+                    this.term.write(data);
+                }
+            }
+            
+            processCommand(command) {
+                if (!command.trim()) {
+                    this.writePrompt();
+                    return;
+                }
+                
+                // Add to command history
+                this.commandHistory.unshift(command);
+                this.historyIndex = -1;
+                
+                // Process the command
+                this.term.write('\r\n');
+                
+                if (this.isConnected && this.connectionId) {
+                    this.sendSSHCommand(command);
+                } else {
+                    this.writeToTerminal('Not connected to any VPS. Please connect first.\r\n');
+                    this.writePrompt();
+                }
+            }
+            
+            async connectToVPS() {
+                const connectionData = {
+                    host: document.getElementById('vpsIp').value,
+                    port: parseInt(document.getElementById('vpsPort').value),
+                    username: document.getElementById('vpsUser').value,
+                    password: document.getElementById('vpsPass').value
+                };
+                
+                if (!connectionData.host || !connectionData.username) {
+                    this.showNotification('Please fill in IP and Username', 'error');
+                    return;
+                }
+                
+                if (!this.socket || !this.socket.connected) {
+                    this.showNotification('Backend server is not connected', 'error');
+                    return;
+                }
+                
+                this.showNotification(`Connecting to ${connectionData.host}...`, 'success');
+                this.writeToTerminal(`\r\n🔌 Connecting to ${connectionData.host}:${connectionData.port}...\r\n`);
+                
+                try {
+                    const response = await fetch(`${this.backendUrl}/api/connect`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(connectionData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.connectionId = result.connectionId;
+                        this.isConnected = true;
+                        this.currentServer = connectionData;
+                        
+                        // Join the socket room for this connection
+                        this.socket.emit('join-connection', this.connectionId);
+                        
+                        // Update UI
+                        this.updateConnectionStatus(true, connectionData.host);
+                        this.writeToTerminal(`✅ Connected to ${connectionData.host} as ${connectionData.username}\r\n`);
+                        this.writeToTerminal('🎯 Now you can select and run any script!\r\n\r\n');
+                        this.writePrompt(`${connectionData.username}@${connectionData.host}:~$ `);
+                        
+                        // Enable run button if script is selected
+                        if (this.selectedScript) {
+                            document.getElementById('runScriptBtn').disabled = false;
+                        }
+                        
+                        this.showNotification(`Successfully connected to ${connectionData.host}`, 'success');
+                    } else {
+                        this.writeToTerminal(`❌ Connection failed: ${result.message}\r\n`);
+                        this.writePrompt();
+                        this.showNotification(`Connection failed: ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    this.writeToTerminal(`❌ Connection error: ${error.message}\r\n`);
+                    this.writePrompt();
+                    this.showNotification(`Connection error: ${error.message}`, 'error');
+                }
+            }
+            
+            async sendSSHCommand(command) {
+                if (!this.isConnected || !this.connectionId) {
+                    this.showNotification('Please connect to a server first', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${this.backendUrl}/api/execute`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            connectionId: this.connectionId,
+                            command: command
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        this.writeToTerminal(`Error: ${result.message}\r\n`);
+                        this.writePrompt();
+                    }
+                } catch (error) {
+                    this.writeToTerminal(`Command error: ${error.message}\r\n`);
+                    this.writePrompt();
+                }
+            }
+            
+            async runScript(scriptType) {
+                if (!this.isConnected || !this.connectionId) {
+                    this.showNotification('Please connect to a server first', 'error');
+                    return;
+                }
+                
+                if (!scriptType) {
+                    this.showNotification('Please select a script first', 'error');
+                    return;
+                }
+                
+                // Get the command from our secure scripts object
+                const script = this.scripts[scriptType];
+                if (!script) {
+                    this.showNotification('Script not found', 'error');
+                    return;
+                }
+                
+                this.showNotification(`Running ${scriptType.toUpperCase()} script...`, 'success');
+                
+                try {
+                    // Send the command directly to the VPS
+                    this.writeToTerminal(`\r\n🚀 Starting ${script.name} script...\r\n`);
+                    this.writeToTerminal(`📝 Executing script automatically...\r\n\r\n`);
+                    
+                    // Execute the script command
+                    await this.sendSSHCommand(script.command);
+                    
+                } catch (error) {
+                    this.writeToTerminal(`Script execution error: ${error.message}\r\n`);
+                    this.writePrompt();
+                    this.showNotification(`Script execution error: ${error.message}`, 'error');
+                }
+            }
+            
+            async disconnectFromVPS() {
+                if (!this.connectionId) return;
+                
+                try {
+                    await fetch(`${this.backendUrl}/api/disconnect`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ connectionId: this.connectionId })
+                    });
+                    
+                    this.isConnected = false;
+                    this.connectionId = null;
+                    this.currentServer = null;
+                    
+                    this.updateConnectionStatus(false, 'Not connected');
+                    document.getElementById('runScriptBtn').disabled = true;
+                    this.writeToTerminal('\r\n🔌 Disconnected from VPS\r\n\r\n');
+                    this.writePrompt();
+                    
+                    this.showNotification('Disconnected from server', 'success');
+                } catch (error) {
+                    console.error('Disconnection error:', error);
+                }
+            }
+            
+            sendCommand(command) {
+                if (!this.isConnected) {
+                    this.showNotification('Please connect to a server first', 'error');
+                    return;
+                }
+                
+                this.term.write(`\r\n${command}\r\n`);
+                this.processCommand(command);
+            }
+            
+            writeToTerminal(text) {
+                this.term.write(text);
+            }
+            
+            writePrompt(prompt = 'vps-manager$ ') {
+                this.term.write(`\r\n${prompt}`);
+                this.currentLine = '';
+            }
+            
+            clearTerminal() {
+                this.term.clear();
+                this.writeToTerminal('🚀 VPS Script Runner - Terminal Cleared\r\n\r\n');
+                this.writePrompt();
+            }
+            
+            saveServer() {
+                const server = {
+                    id: Date.now().toString(),
+                    name: document.getElementById('serverName').value || 'Unnamed Server',
+                    ip: document.getElementById('vpsIp').value,
+                    port: document.getElementById('vpsPort').value,
+                    user: document.getElementById('vpsUser').value,
+                    pass: document.getElementById('vpsPass').value,
+                    date: new Date().toLocaleString()
+                };
+                
+                if (!server.ip || !server.port || !server.user) {
+                    this.showNotification('Please fill in at least IP, Port, and Username', 'error');
+                    return;
+                }
+                
+                this.savedServers.push(server);
+                localStorage.setItem('savedServers', JSON.stringify(this.savedServers));
+                this.loadSavedServers();
+                
+                // Clear form
+                document.getElementById('serverName').value = '';
+                document.getElementById('vpsIp').value = '';
+                document.getElementById('vpsPort').value = '22';
+                document.getElementById('vpsUser').value = '';
+                document.getElementById('vpsPass').value = '';
+                
+                this.showNotification('Server saved successfully!', 'success');
+            }
+            
+            loadSavedServers() {
+                const serverList = document.getElementById('serverList');
+                
+                if (this.savedServers.length === 0) {
+                    serverList.innerHTML = '<p style="text-align: center; color: #a9b1d6; font-size: 0.9rem;">No servers saved</p>';
+                    return;
+                }
+                
+                serverList.innerHTML = '';
+                
+                this.savedServers.forEach(server => {
+                    const serverItem = document.createElement('div');
+                    serverItem.className = 'server-item';
+                    serverItem.innerHTML = `
+                        <div class="server-name">${server.name}</div>
+                        <div class="server-details">${server.ip}:${server.port} (${server.user})</div>
+                    `;
+                    serverItem.addEventListener('click', () => {
+                        this.loadServer(server);
+                    });
+                    serverList.appendChild(serverItem);
+                });
+            }
+            
+            loadServer(server) {
+                document.getElementById('serverName').value = server.name;
+                document.getElementById('vpsIp').value = server.ip;
+                document.getElementById('vpsPort').value = server.port;
+                document.getElementById('vpsUser').value = server.user;
+                document.getElementById('vpsPass').value = server.pass;
+                
+                this.showNotification(`Loaded server: ${server.name}`, 'success');
+            }
+            
+            updateConnectionStatus(connected, message) {
+                const statusIndicator = document.querySelector('#connectionStatusText').previousElementSibling;
+                const statusText = document.getElementById('connectionStatusText');
+                const sshStatus = document.getElementById('sshStatus');
+                
+                if (connected) {
+                    statusIndicator.classList.add('status-connected');
+                    statusText.textContent = `Connected to ${message}`;
+                    sshStatus.textContent = `SSH: ${message}`;
+                    document.getElementById('terminalStatus').textContent = 'Ready - Select script and click Run';
+                } else {
+                    statusIndicator.classList.remove('status-connected');
+                    statusText.textContent = 'Not connected';
+                    sshStatus.textContent = 'SSH: Not connected';
+                    document.getElementById('terminalStatus').textContent = 'Ready - Connect to VPS first';
+                }
+            }
+            
+            updateBackendStatus(message, isConnected) {
+                const backendStatus = document.getElementById('backendStatus');
+                backendStatus.textContent = message;
+                
+                if (isConnected) {
+                    backendStatus.classList.remove('offline');
+                } else {
+                    backendStatus.classList.add('offline');
+                }
+            }
+            
+            async checkBackendStatus() {
+                try {
+                    const response = await fetch(`${this.backendUrl}/api/status`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'running') {
+                        this.updateBackendStatus('✅ Backend: Connected', true);
+                    } else {
+                        this.updateBackendStatus('❌ Backend: Not responding', false);
+                    }
+                } catch (error) {
+                    this.updateBackendStatus('❌ Backend: Connection failed', false);
+                }
+            }
+            
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            window.vpsManager = new VPSScriptRunner();
+        });
+    </script>
+</body>
+</html>
